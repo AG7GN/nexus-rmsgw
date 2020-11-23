@@ -110,13 +110,13 @@ echo "Retrieve the latest rmsgw software"
 sudo mkdir -p /etc/rmsgw
 [ -d /usr/local/etc/rmsgw ] && sudo rm -rf /usr/local/etc/rmsgw
 sudo ln -s /etc/rmsgw /usr/local/etc/rmsgw
-GIT_DIR="rmsgw"
+DIR_="rmsgw"
 UP_TO_DATE=$FALSE
 if ! [[ -s $SRC_DIR/$GIT_DIR/.git/HEAD ]]
 then
 	git clone $URL || { echo >&2 "======= git clone $URL failed ========"; exit 1; }
 else  # See if local repo is up to date
-	cd $GIT_DIR
+	cd $DIR_
 	if git pull | tee /dev/stderr | grep -q "^Already"
 	then
 		echo "============= $REQUEST up to date ============="
@@ -126,7 +126,7 @@ fi
 if [[ $UP_TO_DATE == $FALSE ]]
 then
 	echo "Install rmsgw"
-	cd $SRC_DIR/nexus-rmsgw/$GIT_DIR
+	cd $SRC_DIR/nexus-rmsgw/$DIR_
 	./autogen.sh
 	./configure
 	make && sudo make install
