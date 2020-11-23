@@ -134,7 +134,6 @@ then
 	[[ $? == 0 ]] || { echo >&2 "FAILED.  Aborting installation."; exit 1; }
 	sudo chown -R rmsgw:rmsgw /etc/rmsgw/*
 fi
-cd $SAVE_DIR
 
 echo "Get the pitnc_setparams and pitnc_getparams software"
 wget -q -O pitnc9K6params.zip http://www.tnc-x.com/pitnc9K6params.zip
@@ -192,4 +191,5 @@ echo
 echo "Select 'RMS Gateway Monitor' to monitor the relevant log files"
 echo "and to start/stop the RMS Gateway service (ax25.service)."
 echo
+cd $SAVE_DIR
 
