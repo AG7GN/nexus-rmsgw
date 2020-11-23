@@ -34,6 +34,7 @@ declare -r TRUE=0
 declare -r FALSE=1
 SAVE_DIR="$(pwd)"
 SRC_DIR="/usr/local/src/nexus"
+cd $SRC_DIR/nexus-rmsgw
 
 #sudo apt-get update || aptError "sudo apt-get update"
 CheckDepInstalled "build-essential autoconf libtool git gcc g++ make cmake psmisc net-tools zlib1g zlib1g-dev libncurses5-dev libncursesw5-dev xutils-dev libxml2 libxml2-dev python-requests mariadb-client libmariadbclient-dev texinfo libasound2-dev libudev-dev unzip gpsd libgps-dev yad iptables-persistent"
@@ -109,7 +110,6 @@ echo "Retrieve the latest rmsgw software"
 sudo mkdir -p /etc/rmsgw
 [ -d /usr/local/etc/rmsgw ] && sudo rm -rf /usr/local/etc/rmsgw
 sudo ln -s /etc/rmsgw /usr/local/etc/rmsgw
-cd $SRC_DIR/nexus-rmsgw
 $GIT_DIR="rmsgw"
 UP_TO_DATE=$FALSE
 if ! [[ -s $SRC_DIR/$GIT_DIR/.git/HEAD ]]
