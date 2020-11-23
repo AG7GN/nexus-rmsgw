@@ -110,6 +110,7 @@ echo "Retrieve the latest rmsgw software"
 sudo mkdir -p /etc/rmsgw
 [ -d /usr/local/etc/rmsgw ] && sudo rm -rf /usr/local/etc/rmsgw
 sudo ln -s /etc/rmsgw /usr/local/etc/rmsgw
+URL="https://github.com/nwdigitalradio/rmsgw"
 DIR_="rmsgw"
 UP_TO_DATE=$FALSE
 if ! [[ -s $SRC_DIR/$GIT_DIR/.git/HEAD ]]
