@@ -110,7 +110,7 @@ echo "Retrieve the latest rmsgw software"
 sudo mkdir -p /etc/rmsgw
 [ -d /usr/local/etc/rmsgw ] && sudo rm -rf /usr/local/etc/rmsgw
 sudo ln -s /etc/rmsgw /usr/local/etc/rmsgw
-$GIT_DIR="rmsgw"
+$GIT_DIR="nexus-rmsgw"
 UP_TO_DATE=$FALSE
 if ! [[ -s $SRC_DIR/$GIT_DIR/.git/HEAD ]]
 then
@@ -121,7 +121,6 @@ else  # See if local repo is up to date
 	then
 		echo "============= $REQUEST up to date ============="
 		UP_TO_DATE=$TRUE
-	else
 	fi
 fi
 if [[ $UP_TO_DATE == $FALSE ]]
