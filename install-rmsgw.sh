@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION="2.0.3"
+VERSION="2.0.4"
 
 # This script installs the prerequisites as well as the libax25, ax25-tools,
 # apps and the rmsgw software.  It also installs Hamlib and Direwolf.
@@ -23,10 +23,19 @@ function CheckDepInstalled() {
 	# Checks the installation status of a list of packages. Installs them if they are not
 	# installed.
 	# Takes 1 argument: a string containing the apps to check with apps separated by space
-	MISSING=$(dpkg-query -W -f='${Package} ${Status}\n' $1 2>&1 | grep 'not-installed$' | awk '{ print $1 }')
+	#MISSING=$(dpkg --get-selections $1 2>&1 | grep -v 'install$' | awk '{ print $6 }')
+	#MISSING=$(dpkg-query -W -f='${Package} ${Status}\n' $1 2>&1 | grep 'not-installed$' | awk '{ print $1 }')
+	MISSING=""
+   for P in $1
+   do
+      if apt-cache policy $P | grep -q "Installed: (none)"
+      then
+         MISSING+="$P "
+      fi
+   done
 	if [[ ! -z $MISSING ]]
 	then
-		sudo DEBIAN_FRONTEND=noninteractive apt-get -y install $MISSING || AptError "$MISSING"
+		sudo apt-get -y install $MISSING || AptError "$MISSING"
 	fi
 }
 
