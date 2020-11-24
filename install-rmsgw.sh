@@ -32,8 +32,6 @@ function CheckDepInstalled() {
 
 declare -r TRUE=0
 declare -r FALSE=1
-SAVE_DIR="$(pwd)"
-SRC_DIR="/usr/local/src/nexus"
 cd $SRC_DIR/nexus-rmsgw
 
 #sudo apt-get update || aptError "sudo apt-get update"
@@ -113,7 +111,7 @@ sudo ln -s /etc/rmsgw /usr/local/etc/rmsgw
 URL="https://github.com/nwdigitalradio/rmsgw"
 DIR_="rmsgw"
 UP_TO_DATE=$FALSE
-if ! [[ -s $SRC_DIR/$GIT_DIR/.git/HEAD ]]
+if ! [[ -s $SRC_DIR/$DIR_/.git/HEAD ]]
 then
 	git clone $URL || { echo >&2 "======= git clone $URL failed ========"; exit 1; }
 else  # See if local repo is up to date
@@ -171,14 +169,15 @@ sudo mv -f /tmp/rmsgw_config_monitor.desktop /usr/local/share/applications/
 
 echo "Done."
 
+cd $SRC_DIR/nexus-rmsgw
 echo "Installing scripts, firewall rules and logrotate files."
-sudo cp -f usr/local/bin/rmschanstat.local /usr/local/bin/
-sudo cp -f usr/local/bin/rmsgw_manager.sh /usr/local/bin/
-sudo cp -f etc/ax25/ax25-* /etc/ax25/
-sudo cp -f etc/logrotate.d/* /etc/logrotate.d/
-sudo cp -f etc/rsyslog.d/* /etc/rsyslog.d/
+sudo cp -f $SRC_DIR/nexus-rmsgw/usr/local/bin/rmschanstat.local /usr/local/bin/
+sudo cp -f $SRC_DIR/nexus-rmsgw/usr/local/bin/rmsgw_manager.sh /usr/local/bin/
+sudo cp -f $SRC_DIR/nexus-rmsgw/etc/ax25/ax25-* /etc/ax25/
+sudo cp -f $SRC_DIR/nexus-rmsgw/etc/logrotate.d/* /etc/logrotate.d/
+sudo cp -f $SRC_DIR/nexus-rmsgw/etc/rsyslog.d/* /etc/rsyslog.d/
 sudo systemctl restart rsyslog
-sudo cp -f rmsgw-activity.sh /usr/local/bin/
+sudo cp -f $SRC_DIR/nexus-rmsgw/rmsgw-activity.sh /usr/local/bin/
 echo "Done."
 
 echo
@@ -191,5 +190,5 @@ echo
 echo "Select 'RMS Gateway Monitor' to monitor the relevant log files"
 echo "and to start/stop the RMS Gateway service (ax25.service)."
 echo
-cd $SAVE_DIR
+exit 0
 
