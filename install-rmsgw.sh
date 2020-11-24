@@ -109,9 +109,9 @@ sudo mkdir -p /etc/rmsgw
 [ -d /usr/local/etc/rmsgw ] && sudo rm -rf /usr/local/etc/rmsgw
 sudo ln -s /etc/rmsgw /usr/local/etc/rmsgw
 URL="https://github.com/nwdigitalradio/rmsgw"
-DIR_="rmsgw"
+DIR_="$SRC_DIR/nexus-rmsgw/rmsgw"
 UP_TO_DATE=$FALSE
-if ! [[ -s $SRC_DIR/$DIR_/.git/HEAD ]]
+if ! [[ -s $DIR_/.git/HEAD ]]
 then
 	git clone $URL || { echo >&2 "======= git clone $URL failed ========"; exit 1; }
 else  # See if local repo is up to date
@@ -125,7 +125,7 @@ fi
 if [[ $UP_TO_DATE == $FALSE ]]
 then
 	echo "Install rmsgw"
-	cd $SRC_DIR/nexus-rmsgw/$DIR_
+	cd $DIR_
 	./autogen.sh
 	./configure
 	make && sudo make install
@@ -133,6 +133,7 @@ then
 	sudo chown -R rmsgw:rmsgw /etc/rmsgw/*
 fi
 
+cd $SRC_DIR/nexus-rmsgw
 echo "Get the pitnc_setparams and pitnc_getparams software"
 wget -q -O pitnc9K6params.zip http://www.tnc-x.com/pitnc9K6params.zip
 if [[ $? == 0 ]]
@@ -169,7 +170,6 @@ sudo mv -f /tmp/rmsgw_config_monitor.desktop /usr/local/share/applications/
 
 echo "Done."
 
-cd $SRC_DIR/nexus-rmsgw
 echo "Installing scripts, firewall rules and logrotate files."
 sudo cp -f $SRC_DIR/nexus-rmsgw/usr/local/bin/rmschanstat.local /usr/local/bin/
 sudo cp -f $SRC_DIR/nexus-rmsgw/usr/local/bin/rmsgw_manager.sh /usr/local/bin/
