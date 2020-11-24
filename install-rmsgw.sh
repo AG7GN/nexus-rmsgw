@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION="2.0.2"
+VERSION="2.0.3"
 
 # This script installs the prerequisites as well as the libax25, ax25-tools,
 # apps and the rmsgw software.  It also installs Hamlib and Direwolf.
@@ -30,6 +30,28 @@ function CheckDepInstalled() {
 	fi
 }
 
+
+function InstalledPkgVersion() {
+
+	# Checks if a deb package is installed and returns version if it is
+	# arg1: Name of package
+	# Returns version of installed package or empty string if package is
+	# not installed
+	
+	INSTALLED_="$(dpkg -l "$1" 2>/dev/null | grep "$1" | tr -s ' ')"
+	[[ $INSTALLED_ =~ ^ii ]] && echo "$INSTALLED_" | cut -d ' ' -f3 || echo ""
+}
+
+
+function DebPkgVersion() {
+	# Checks the version of a .deb package file.
+	# Returns version of the .deb package or empty string if .deb file can't be read
+	# arg1: path to .deb file
+	VERSION_="$(dpkg-deb -I "$1" 2>/dev/null | grep "^ Version:" | tr -d ' ' | cut -d: -f2)"
+	[[ -z $VERSION_ ]] && echo "" || echo "$VERSION_"
+
+}
+
 declare -r TRUE=0
 declare -r FALSE=1
 cd $SRC_DIR/nexus-rmsgw
@@ -37,27 +59,36 @@ cd $SRC_DIR/nexus-rmsgw
 #sudo apt-get update || aptError "sudo apt-get update"
 CheckDepInstalled "build-essential autoconf libtool git gcc g++ make cmake psmisc net-tools zlib1g zlib1g-dev libncurses5-dev libncursesw5-dev xutils-dev libxml2 libxml2-dev python-requests mariadb-client libmariadbclient-dev texinfo libasound2-dev libudev-dev unzip gpsd libgps-dev yad iptables-persistent"
 
+for F in *.deb
+do
+	INSTALLED_VERSION="$(InstalledPkgVersion ${F%%_*})"
+	REPO_VERSION="$(DebPkgVersion $F)"
+	if [[ $INSTALLED_VERSION == $REPO_VERSION && ! -z $REPO_VERSION ]]
+	then
+		echo >&2 "${F%%_*} already installed and up to date"
+	else
+		echo "Prevent the standard ${F%%_*} package from overwriting our version"
+		sudo apt-mark hold ${F%%_*}
+		echo "Install $F"
+		sudo dpkg --force-overwrite --install $F
+		[[ $? == 0 ]] || { echo >&2 "FAILED.  Aborting installation."; exit 1; }
+		echo "Done."
+	fi
+done
 
-echo "Prevent the standard libax25 package from overwriting our version"
-sudo apt-mark hold libax25
-echo "Install libax25"
-sudo dpkg --force-overwrite --install libax25_1.1.3-1_armhf.deb
-[[ $? == 0 ]] || { echo >&2 "FAILED.  Aborting installation."; exit 1; }
-echo "Done."
+#echo "Prevent the standard ax25-apps package from overwriting our version"
+#sudo apt-mark hold ax25-apps
+#echo "Install ax25-apps"
+#sudo dpkg --install ax25-apps_2.0.1-1_armhf.deb
+#[[ $? == 0 ]] || { echo >&2 "FAILED.  Aborting installation."; exit 1; }
+#echo "Done."
 
-echo "Prevent the standard ax25-apps package from overwriting our version"
-sudo apt-mark hold ax25-apps
-echo "Install ax25-apps"
-sudo dpkg --install ax25-apps_2.0.1-1_armhf.deb
-[[ $? == 0 ]] || { echo >&2 "FAILED.  Aborting installation."; exit 1; }
-echo "Done."
-
-echo "Prevent the standard ax25-tools package from overwriting our version"
-sudo apt-mark hold ax25-tools
-echo "Install ax25-tools"
-sudo dpkg --install ax25-tools_1.0.5-1_armhf.deb
-[[ $? == 0 ]] || { echo >&2 "FAILED.  Aborting installation."; exit 1; }
-echo "Done."
+#echo "Prevent the standard ax25-tools package from overwriting our version"
+#sudo apt-mark hold ax25-tools
+#echo "Install ax25-tools"
+#sudo dpkg --install ax25-tools_1.0.5-1_armhf.deb
+#[[ $? == 0 ]] || { echo >&2 "FAILED.  Aborting installation."; exit 1; }
+#echo "Done."
 
 echo "Add rmsgw user"
 sudo useradd -c 'Linux RMS Gateway' -d /etc/rmsgw -s /bin/false rmsgw
