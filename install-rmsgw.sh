@@ -23,7 +23,7 @@ function CheckDepInstalled() {
 	# Checks the installation status of a list of packages. Installs them if they are not
 	# installed.
 	# Takes 1 argument: a string containing the apps to check with apps separated by space
-	MISSING=$(dpkg --get-selections $1 2>&1 | grep -v 'install$' | awk '{ print $6 }')
+	MISSING=$(dpkg-query -W -f='${Package} ${Status}\n' $1 2>&1 | grep 'not-installed$' | awk '{ print $1 }')
 	if [[ ! -z $MISSING ]]
 	then
 		sudo DEBIAN_FRONTEND=noninteractive apt-get -y install $MISSING || AptError "$MISSING"
