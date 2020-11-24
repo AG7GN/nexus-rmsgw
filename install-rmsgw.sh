@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION="2.0.1"
+VERSION="2.0.2"
 
 # This script installs the prerequisites as well as the libax25, ax25-tools,
 # apps and the rmsgw software.  It also installs Hamlib and Direwolf.
