@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION="2.0.4"
+VERSION="2.0.5"
 
 # This script installs the prerequisites as well as the libax25, ax25-tools,
 # apps and the rmsgw software.  It also installs Hamlib and Direwolf.
@@ -70,7 +70,7 @@ cd $SRC_DIR/nexus-rmsgw
 #sudo apt-get update || aptError "sudo apt-get update"
 CheckDepInstalled "build-essential autoconf libtool git gcc g++ make cmake psmisc net-tools zlib1g zlib1g-dev libncurses5-dev libncursesw5-dev xutils-dev libxml2 libxml2-dev python-requests mariadb-client libmariadbclient-dev texinfo libasound2-dev libudev-dev unzip gpsd libgps-dev yad iptables-persistent"
 
-for F in *.deb
+for F in lib*.deb ax25-a* ax25-t*
 do
 	INSTALLED_VERSION="$(InstalledPkgVersion ${F%%_*})"
 	REPO_VERSION="$(DebPkgVersion $F)"
