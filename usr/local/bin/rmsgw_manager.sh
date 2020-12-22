@@ -16,7 +16,7 @@
 #%
 #================================================================
 #- IMPLEMENTATION
-#-    version         ${SCRIPT_NAME} 1.0.3
+#-    version         ${SCRIPT_NAME} 1.0.4
 #-    author          Steve Magnuson, AG7GN
 #-    license         CC-BY-SA Creative Commons License
 #-    script_id       0
@@ -181,6 +181,7 @@ function LoadSettings() {
    	echo "F[_DWUSER_]='$(whoami)'" >> "$RMSGW_CONFIG_FILE"
   		echo "F[_BANNER_]='*** My Banner ***'" >> "$RMSGW_CONFIG_FILE"
    	echo "F[_REPORTS_]='FALSE'" >> "$RMSGW_CONFIG_FILE"
+   	echo "F[_ADDL_EMAIL_]=''" >> "$RMSGW_CONFIG_FILE"
 	fi
 }
 
@@ -258,8 +259,15 @@ function UpdateReporting () {
 					--arg L "${F[_GRID_]}" \
 						'.mycall = $C | .secure_login_password = $P | .locator = $L' | sponge $PAT_DIR/config.json
 				echo "Installing cron job for report generation and email for user $WHO" >$PIPEDATA
+				if [[ -z ${F[_ADDL_EMAIL_]} ]]
+				then
+					EMAILs=${F[_EMAIL_]}
+				else
+					_EMAILs="$(echo "${F[_ADDL_EMAIL_]}" | tr -s ' ' | tr ' ' ',')"
+					EMAILs="${F[_EMAIL_]},$_EMAILs"
+				fi
 				WHEN="1 0 * * *"
-				WHAT="$SCRIPT ${F[_EMAIL_]} $PAT_DIR >/dev/null 2>&1"
+				WHAT="$SCRIPT $EMAILs $PAT_DIR >/dev/null 2>&1"
 				JOB="$WHEN PATH=\$PATH:/usr/local/bin; $WHAT"
 				cat <(fgrep -i -v "$SCRIPT" <(sudo crontab -u $WHO -l)) <(echo "$JOB") | sudo crontab -u $WHO -
 				WHEN="3 * * * *"
@@ -320,6 +328,7 @@ function SaveSettings () {
 	F[_DWUSER_]="${TF[25]}"
 	F[_BANNER_]="$(echo "${TF[26]}" | sed "s/'//g")" # Strip out single quotes
 	F[_REPORTS_]="${TF[27]}"
+	F[_ADDL_EMAIL_]="${TF[28]}"
 
 	# Do some minimal error checking
 	if [[ ${F[_CALL_]} =~ ^N0(CALL|ONE)$ || \
@@ -481,6 +490,7 @@ function ConfigureRMSGateway () {
   			--field="Direwolf User" 
   			--field="Banner Text (keep it short!)" 
   			--field="Send daily activity reports to Sysop email address":CHK 
+  			--field="Add'l Activity Report Email(s)\n(Use comma to separate emails)"
 			--button="<b>Close</b>":1 \
 			--button="<b>Save</b>":0 \
 			--
@@ -512,6 +522,7 @@ function ConfigureRMSGateway () {
 			"${F[_DWUSER_]}"
 			"${F[_BANNER_]}"
 			"${F[_REPORTS_]}"
+			"${F[_ADDL_EMAIL_]}"
 		)
 		"${CMD[@]}" > $RMSGW_TEMP_CONFIG
 		
