@@ -16,7 +16,7 @@
 #%
 #================================================================
 #- IMPLEMENTATION
-#-    version         ${SCRIPT_NAME} 1.0.4
+#-    version         ${SCRIPT_NAME} 1.0.5
 #-    author          Steve Magnuson, AG7GN
 #-    license         CC-BY-SA Creative Commons License
 #-    script_id       0
@@ -130,7 +130,8 @@ function CheckDaemon() {
 }
 
 function RestartAX25Service() {
-	if systemctl list-unit-files | grep enabled | grep -q ax25
+	if sudo systemctl enable ax25.service >$PIPEDATA 2>&1
+#	if systemctl list-unit-files | grep enabled | grep -q ax25
 	then # ax25 service is enabled.
 		if systemctl | grep running | grep -q ax25.service
 		then # ax25 is running.  Restart it.
@@ -141,7 +142,7 @@ function RestartAX25Service() {
    		sudo systemctl start ax25 2>$PIPEDATA || echo -e "\n\n*** ERROR starting: Is RMS Gateway configured?" >$PIPEDATA
   		fi
 	else # ax25 service is not enabled.  Create it.
-   	echo -e "\n\n*** ERROR: RMS Gateway is not enabled. Click 'Configure' to set it up." >$PIPEDATA
+   	echo -e "\n\n*** ERROR: ax25 service could not be enabled. Try reinstalling the RMS Gateway Manager." >$PIPEDATA
 	fi
 	return 0
 }
