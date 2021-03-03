@@ -535,7 +535,7 @@ function ConfigureRMSGateway () {
 					if ! systemctl list-unit-files | grep enabled | grep -q ax25
 					then # No ax25 service exists. Create it.
 	   				echo "Creating ax25 service..." >$PIPEDATA
-				   	cat > "${TMPDIR}/ax25.service" << EOF
+				   	cat > "$TMP_AX25_SERVICE" << EOF
 [Unit]
 Description=AX.25 interface
 After=network.target
@@ -557,8 +557,8 @@ ExecStop=/etc/ax25/ax25-down
 [Install]
 WantedBy=default.target
 EOF
-	   				sudo cp -f "${TMPDIR}/ax25.service" /lib/systemd/system/ax25.service
-	   				rm -f "${TMPDIR}/ax25.service"
+	   				sudo cp -f "$TMP_AX25_SERVICE" /lib/systemd/system/ax25.service
+	   				rm -f "$TMP_AX25_SERVICE"
 	   				sudo systemctl enable ax25 >$PIPEDATA
 	   				echo "Done." >$PIPEDATA
 	   				echo -e "\n\nClick '[Re]start' to start the RMS Gateway" >$PIPEDATA
@@ -628,7 +628,7 @@ export -f CheckDaemon RestartAX25Service ConfigureRMSGateway SaveSettings Update
 export PIPEDATA=$PIPE
 export RMSGW_CONFIG_FILE
 export RMSGW_TEMP_CONFIG=$TMPDIR/CONFIGURE_RMSGW.txt
-export TMPDIR=$TMPDIR
+export TMP_AX25_SERVICE=$TMPDIR/ax25.service
 
 #============================
 #  PARSE OPTIONS WITH GETOPTS
@@ -744,5 +744,6 @@ yad --title="$TITLE" --text-align="center" --window-icon=logviewer \
 	--button="<b>Configure</b>":"bash -c ConfigureRMSGateway" <&9 &
 monitor_PID=$!
 PIDs+=( $monitor_PID )
+[[ -s $RMSGW_CONFIG_FILE ]] || echo "RMS Gateway appears to be unconfigured. Click 'Configure' below." >&9
 tail -F --pid=$monitor_PID -q -n 30 $LOGFILES 2>/dev/null | cat -v >&9
 SafeExit
