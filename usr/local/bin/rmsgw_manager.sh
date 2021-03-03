@@ -561,7 +561,7 @@ EOF
 	   				rm -f "${TMPDIR}/ax25.service"
 	   				sudo systemctl enable ax25 >$PIPEDATA
 	   				echo "Done." >$PIPEDATA
-	   				echo -e "\n\nClick 'Start' to start the RMS Gateway" >$PIPEDATA
+	   				echo -e "\n\nClick '[Re]start' to start the RMS Gateway" >$PIPEDATA
 					fi
 
 					# Add Auto-Check-in script to cron
