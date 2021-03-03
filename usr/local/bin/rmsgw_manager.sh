@@ -16,7 +16,7 @@
 #%
 #================================================================
 #- IMPLEMENTATION
-#-    version         ${SCRIPT_NAME} 1.0.5
+#-    version         ${SCRIPT_NAME} 1.0.6
 #-    author          Steve Magnuson, AG7GN
 #-    license         CC-BY-SA Creative Commons License
 #-    script_id       0
@@ -628,6 +628,7 @@ export -f CheckDaemon RestartAX25Service ConfigureRMSGateway SaveSettings Update
 export PIPEDATA=$PIPE
 export RMSGW_CONFIG_FILE
 export RMSGW_TEMP_CONFIG=$TMPDIR/CONFIGURE_RMSGW.txt
+export TMPDIR=$TMPDIR
 
 #============================
 #  PARSE OPTIONS WITH GETOPTS
