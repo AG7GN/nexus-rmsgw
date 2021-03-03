@@ -16,7 +16,7 @@
 #%
 #================================================================
 #- IMPLEMENTATION
-#-    version         ${SCRIPT_NAME} 1.0.6
+#-    version         ${SCRIPT_NAME} 1.0.7
 #-    author          Steve Magnuson, AG7GN
 #-    license         CC-BY-SA Creative Commons License
 #-    script_id       0
@@ -61,6 +61,7 @@ function TrapCleanup() {
 	unset SetFormFields 
 	unset LoadSettings
 	unset RMSGW_CONFIG_FILE
+	unset TMP_AX25_SERVICE
 	unset RMSGW_TEMP_CONFIG
 	unset PIPEDATA
 }
