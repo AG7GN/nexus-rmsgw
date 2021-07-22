@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION="2.0.5"
+VERSION="2.0.6"
 
 # This script installs the prerequisites as well as the libax25, ax25-tools,
 # apps and the rmsgw software.  It also installs Hamlib and Direwolf.
@@ -86,6 +86,16 @@ do
 		echo "Done."
 	fi
 done
+
+if systemctl | grep running | grep -q ax25.service
+then
+	AX25_WAS_RUNNING=$TRUE
+	echo "Stopping ax25.service"
+	sudo systemctl stop ax25.service
+	echo "Done."
+else
+	AX25_WAS_RUNNING=$FALSE
+fi
 
 #echo "Prevent the standard ax25-apps package from overwriting our version"
 #sudo apt-mark hold ax25-apps
@@ -221,9 +231,18 @@ sudo cp -f $SRC_DIR/nexus-rmsgw/etc/rsyslog.d/* /etc/rsyslog.d/
 sudo systemctl restart rsyslog
 sudo cp -f $SRC_DIR/nexus-rmsgw/rmsgw-activity.sh /usr/local/bin/
 echo "Done."
-
 echo
+echo "Update various configuration files."
+/usr/local/bin/rmsgw_manager.sh -u
+echo "Done"
 echo
+if [[ $AX25_WAS_RUNNING == $TRUE ]]
+then
+	echo "Restarting ax25.service"
+	sudo systemctl start ax25.service
+	echo "Done."
+	echo
+fi
 echo "Installation complete."
 echo
 echo "Select 'Configure RMS Gateway' from the Ham Radio Raspberry"

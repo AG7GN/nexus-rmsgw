@@ -3,7 +3,7 @@
 # HEADER
 #================================================================
 #% SYNOPSIS
-#+   ${SCRIPT_NAME} [-hv]
+#+   ${SCRIPT_NAME} [-huv]
 #%
 #% DESCRIPTION
 #%   This script provides a GUI to configure, start/stop, and 
@@ -12,11 +12,14 @@
 #%
 #% OPTIONS
 #%    -h, --help                  Print this help
+#%    -u, --update                If the configuration file is present, this
+#%                                option will update all the RMSGW related files
+#%                                with the data from the configuration file, then exit.
 #%    -v, --version               Print script information
 #%
 #================================================================
 #- IMPLEMENTATION
-#-    version         ${SCRIPT_NAME} 1.0.7
+#-    version         ${SCRIPT_NAME} 1.0.8
 #-    author          Steve Magnuson, AG7GN
 #-    license         CC-BY-SA Creative Commons License
 #-    script_id       0
@@ -25,6 +28,7 @@
 #  HISTORY
 #     20200428 : Steve Magnuson : Script creation.
 #     20200507 : Steve Magnuson : Bug fixes
+#     20210721 : Steve Magnuson : Add -u option
 # 
 #================================================================
 #  DEBUG OPTION
@@ -60,6 +64,7 @@ function TrapCleanup() {
 	unset UpdateReporting 
 	unset SetFormFields 
 	unset LoadSettings
+	unset WriteConfiguration
 	unset RMSGW_CONFIG_FILE
 	unset TMP_AX25_SERVICE
 	unset RMSGW_TEMP_CONFIG
@@ -67,9 +72,10 @@ function TrapCleanup() {
 }
 
 function SafeExit() {
+	EXIT_CODE=${1:-0}
    trap - INT TERM EXIT SIGINT
 	TrapCleanup
-   exit 0
+   exit $EXIT_CODE
 }
 
 function ScriptInfo() { 
@@ -300,37 +306,9 @@ function UpdateReporting () {
 	fi
 }
 
-function SaveSettings () {
-	IFS='~' read -r -a TF < "$RMSGW_TEMP_CONFIG"
-	F[_CALL_]="${TF[0]^^}"
-	F[_SSID_]="${TF[1]}"
-	F[_PASSWORD_]="${TF[2]}"
-	F[_SYSOP_]="${TF[3]}"
-	F[_GRID_]="${TF[4]}"
-	F[_ADDR1_]="${TF[5]}"
-	F[_ADDR2_]="${TF[6]}"
-	F[_CITY_]="${TF[7]}"
-	F[_STATE_]="${TF[8]}"
-	F[_ZIP_]="${TF[9]}"
-	F[_BEACON_]="${TF[10]}"
-	F[_EMAIL_]="${TF[11]}"
-	F[_FREQ_]="${TF[12]}"
-	F[_POWER_]="${TF[13]}"
-	F[_HEIGHT_]="${TF[14]}"
-	F[_GAIN_]="${TF[15]}"
-	F[_DIR_]="${TF[16]}"
-	F[_HOURS_]="${TF[17]}"
-	F[_SERVICE_]="${TF[18]}"
-	F[_TNC_]="${TF[19]}"
-	F[_MODEM_]="${TF[20]}"
-	F[_ADEVICE_CAPTURE_]="${TF[21]}"
-	F[_ADEVICE_PLAY_]="${TF[22]}"
-	F[_ARATE_]="${TF[23]}"
-	F[_PTT_]="${TF[24]}"
-	F[_DWUSER_]="${TF[25]}"
-	F[_BANNER_]="$(echo "${TF[26]}" | sed "s/'//g")" # Strip out single quotes
-	F[_REPORTS_]="${TF[27]}"
-	F[_ADDL_EMAIL_]="${TF[28]}"
+function WriteConfiguration () {
+
+	source "$RMSGW_CONFIG_FILE"
 
 	# Do some minimal error checking
 	if [[ ${F[_CALL_]} =~ ^N0(CALL|ONE)$ || \
@@ -338,18 +316,9 @@ function SaveSettings () {
 			${F[_EMAIL_],,} =~ @example.com$ || \
 			! ${F[_EMAIL_],,} =~ ^[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:].]{2,4}$ ]]
 	then
-		echo -e "\n**** CONFIGURATION ERROR ****: Invalid Sysop call sign or empty password or\ninvalid email address." >$PIPEDATA
+		echo -e "\n**** CONFIGURATION ERROR ****: Invalid Sysop call sign or empty password or\ninvalid email address.\RMSGW files not updated." >$PIPEDATA
 		return 1
 	fi
-
-	UpdateReporting
-
-	# Update the configuration file
-	echo "declare -A F" > "$RMSGW_CONFIG_FILE"
-	for I in "${!F[@]}"
-	do
-		echo "F[$I]='${F[$I]}'" >> "$RMSGW_CONFIG_FILE"
-	done
 
 	# Update the various RMS gateway configuration files
 	TEMPF=$RMSGW_TEMP_CONFIG
@@ -427,6 +396,62 @@ function SaveSettings () {
    	sudo ln -s /etc/ax25/ax25-up.new /etc/ax25/ax25-up
 	fi
 	echo "Done." >$PIPEDATA
+	return 0
+
+}
+
+function SaveSettings () {
+	IFS='~' read -r -a TF < "$RMSGW_TEMP_CONFIG"
+	F[_CALL_]="${TF[0]^^}"
+	F[_SSID_]="${TF[1]}"
+	F[_PASSWORD_]="${TF[2]}"
+	F[_SYSOP_]="${TF[3]}"
+	F[_GRID_]="${TF[4]}"
+	F[_ADDR1_]="${TF[5]}"
+	F[_ADDR2_]="${TF[6]}"
+	F[_CITY_]="${TF[7]}"
+	F[_STATE_]="${TF[8]}"
+	F[_ZIP_]="${TF[9]}"
+	F[_BEACON_]="${TF[10]}"
+	F[_EMAIL_]="${TF[11]}"
+	F[_FREQ_]="${TF[12]}"
+	F[_POWER_]="${TF[13]}"
+	F[_HEIGHT_]="${TF[14]}"
+	F[_GAIN_]="${TF[15]}"
+	F[_DIR_]="${TF[16]}"
+	F[_HOURS_]="${TF[17]}"
+	F[_SERVICE_]="${TF[18]}"
+	F[_TNC_]="${TF[19]}"
+	F[_MODEM_]="${TF[20]}"
+	F[_ADEVICE_CAPTURE_]="${TF[21]}"
+	F[_ADEVICE_PLAY_]="${TF[22]}"
+	F[_ARATE_]="${TF[23]}"
+	F[_PTT_]="${TF[24]}"
+	F[_DWUSER_]="${TF[25]}"
+	F[_BANNER_]="$(echo "${TF[26]}" | sed "s/'//g")" # Strip out single quotes
+	F[_REPORTS_]="${TF[27]}"
+	F[_ADDL_EMAIL_]="${TF[28]}"
+
+	# Do some minimal error checking
+	if [[ ${F[_CALL_]} =~ ^N0(CALL|ONE)$ || \
+			${F[_PASSWORD_]} == "" || \
+			${F[_EMAIL_],,} =~ @example.com$ || \
+			! ${F[_EMAIL_],,} =~ ^[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:].]{2,4}$ ]]
+	then
+		echo -e "\n**** CONFIGURATION ERROR ****: Invalid Sysop call sign or empty password or\ninvalid email address." >$PIPEDATA
+		return 1
+	fi
+
+	UpdateReporting
+
+	# Update the configuration file
+	echo "declare -A F" > "$RMSGW_CONFIG_FILE"
+	for I in "${!F[@]}"
+	do
+		echo "F[$I]='${F[$I]}'" >> "$RMSGW_CONFIG_FILE"
+	done
+
+	WriteConfiguration
 
 	# Set permissions
 	sudo chown -R rmsgw:rmsgw /etc/rmsgw/*
@@ -625,7 +650,7 @@ PIPE=$TMPDIR/pipe
 mkfifo $PIPE
 exec 9<> $PIPE
 
-export -f CheckDaemon RestartAX25Service ConfigureRMSGateway SaveSettings UpdateReporting SetFormFields LoadSettings
+export -f CheckDaemon RestartAX25Service ConfigureRMSGateway SaveSettings UpdateReporting SetFormFields LoadSettings WriteConfiguration
 export PIPEDATA=$PIPE
 export RMSGW_CONFIG_FILE
 export RMSGW_TEMP_CONFIG=$TMPDIR/CONFIGURE_RMSGW.txt
@@ -636,12 +661,13 @@ export TMP_AX25_SERVICE=$TMPDIR/ax25.service
 #============================
   
 #== set short options ==#
-SCRIPT_OPTS=':hv-:'
+SCRIPT_OPTS=':huv-:'
 
 #== set long options associated with short one ==#
 typeset -A ARRAY_OPTS
 ARRAY_OPTS=(
 	[help]=h
+	[update]=u
 	[version]=v
 )
 
@@ -689,6 +715,18 @@ do
 		h) 
 			ScriptInfo full
 			exit 0
+			;;
+		u) 
+			# Kill earlier running scripts
+			kill -9 $(pgrep -f "$TITLE" | grep -v $$) 
+			if [[ -s $RMSGW_CONFIG_FILE ]] && WriteConfiguration
+			then
+				echo "${SCRIPT_NAME}: Configuration files written"
+				SafeExit
+			else
+				Die "${SCRIPT_NAME}: $RMSGW_CONFIG_FILE empty or not found"
+				SafeExit 1
+			fi
 			;;
 		v) 
 			ScriptInfo version
