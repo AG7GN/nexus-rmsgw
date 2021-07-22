@@ -641,7 +641,8 @@ SCRIPT_ID="$(ScriptInfo | grep script_id | tr -s ' ' | cut -d' ' -f3)"
 SCRIPT_HEADSIZE=$(grep -sn "^# END_OF_HEADER" ${0} | head -1 | cut -f1 -d:)
 VERSION="$(ScriptInfo version | grep version | tr -s ' ' | cut -d' ' -f 4)" 
 
-TITLE="RMS Gateway Manager $VERSION"
+APP_NAME="RMS Gateway Manager"
+TITLE="$TITLE $VERSION"
 RMSGW_CONFIG_FILE="$HOME/rmsgw.conf"
 LOGFILES="/var/log/rms.debug /var/log/ax25-listen.log /var/log/packet.log"
 TEXT="<b><big><span color='blue'>RMS Gateway Manager</span></big></b>\nFollowing $LOGFILES"
@@ -718,7 +719,7 @@ do
 			;;
 		u) 
 			# Kill earlier running scripts
-			kill -9 $(pgrep -f "$TITLE" | grep -v $$) 
+			kill -9 $(pgrep -f "$APP_NAME" | grep -v $$) 2>/dev/null
 			if [[ -s $RMSGW_CONFIG_FILE ]] && WriteConfiguration
 			then
 				echo "${SCRIPT_NAME}: Configuration files written"
