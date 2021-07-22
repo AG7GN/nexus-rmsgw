@@ -19,7 +19,7 @@
 #%
 #================================================================
 #- IMPLEMENTATION
-#-    version         ${SCRIPT_NAME} 1.0.8
+#-    version         ${SCRIPT_NAME} 1.0.9
 #-    author          Steve Magnuson, AG7GN
 #-    license         CC-BY-SA Creative Commons License
 #-    script_id       0
@@ -642,7 +642,7 @@ SCRIPT_HEADSIZE=$(grep -sn "^# END_OF_HEADER" ${0} | head -1 | cut -f1 -d:)
 VERSION="$(ScriptInfo version | grep version | tr -s ' ' | cut -d' ' -f 4)" 
 
 APP_NAME="RMS Gateway Manager"
-TITLE="$TITLE $VERSION"
+TITLE="$APP_NAME $VERSION"
 RMSGW_CONFIG_FILE="$HOME/rmsgw.conf"
 LOGFILES="/var/log/rms.debug /var/log/ax25-listen.log /var/log/packet.log"
 TEXT="<b><big><span color='blue'>RMS Gateway Manager</span></big></b>\nFollowing $LOGFILES"
@@ -719,7 +719,7 @@ do
 			;;
 		u) 
 			# Kill earlier running scripts
-			kill -9 $(pgrep -f "$APP_NAME" | grep -v $$) 2>/dev/null
+			kill -9 $(pgrep -f "yad.*$APP_NAME" | grep -v $$) 2>/dev/null
 			if [[ -s $RMSGW_CONFIG_FILE ]] && WriteConfiguration
 			then
 				echo "${SCRIPT_NAME}: Configuration files written"
