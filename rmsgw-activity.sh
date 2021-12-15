@@ -6,7 +6,7 @@
 # 1 0 * * *   /home/pi/rmsgw-activity.sh 2>&1 >/dev/null
 
 
-VERSION="1.1.8"
+VERSION="1.1.9"
 
 declare -i AGE=24 # Age in hours
 FILES="/var/log/rms* /var/log/syslog*"
@@ -61,7 +61,7 @@ if [[ $PAT_VERSION =~ v0.1[01]. ]]
 then
 	cat $OUTFILE | sort | uniq | $(command -v patmail.sh) -d $PAT_DIR $MAILTO "$HOSTNAME RMS Gateway activity for 24 hours preceding `date`" telnet
 else
-	cat $OUTFILE | sort | uniq | $(command -v pat) --config $PAT_DIR/config.json compose --subject "$HOSTNAME RMSGW activity 24 hours before `date` $(echo $MAILTO | xargs -d,)"
+	cat $OUTFILE | sort | uniq | $(command -v pat) --config $PAT_DIR/config.json compose --subject "$HOSTNAME RMSGW activity 24 hours before `date`" $(echo $MAILTO | xargs -d,)
 	$(command -v pat) --config $PAT_DIR/config.json --send-only connect telnet
 fi
 rm $OUTFILE
