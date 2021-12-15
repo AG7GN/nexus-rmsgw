@@ -6,12 +6,23 @@
 # 1 0 * * *   /home/pi/rmsgw-activity.sh 2>&1 >/dev/null
 
 
-VERSION="1.1.7"
+VERSION="1.1.8"
 
 declare -i AGE=24 # Age in hours
 FILES="/var/log/rms* /var/log/syslog*"
 MAILTO="${1:-w7ecg.wecg@gmail.com}"
-PAT_DIR="${2:-$HOME/.wl2k}"
+PAT_VERSION="$(pat version | cut -d' ' -f2)"
+if [[ -z $PAT_VERSION ]]
+then
+	echo "pat is not installed. Reporting is disabled."
+	exit 1
+fi
+if [[ $PAT_VERSION =~ v0.1[01]. ]]
+then
+	PAT_DIR="${2:-$HOME/.wl2k}"
+else
+	PAT_DIR="${2:-$HOME/.config/pat}"
+fi
 # Mail RMS gateway login activity for last 24 hours.
 FILTERED="$(mktemp)"
 OUTFILE="$(mktemp)"
@@ -45,6 +56,13 @@ fi
 #   echo 
 #   cat $OUTFILE | sort | uniq
 #} | /usr/sbin/ssmtp $MAILTO
-cat $OUTFILE | sort | uniq | $(command -v patmail.sh) -d $PAT_DIR $MAILTO "$HOSTNAME RMS Gateway activity for 24 hours preceding `date`" telnet
+
+if [[ $PAT_VERSION =~ v0.1[01]. ]]
+then
+	cat $OUTFILE | sort | uniq | $(command -v patmail.sh) -d $PAT_DIR $MAILTO "$HOSTNAME RMS Gateway activity for 24 hours preceding `date`" telnet
+else
+	cat $OUTFILE | sort | uniq | $(command -v pat) --config $PAT_DIR/config.json compose --subject "$HOSTNAME RMSGW activity 24 hours before `date` $(echo $MAILTO | xargs -d,)"
+	$(command -v pat) --config $PAT_DIR/config.json --send-only connect telnet
+fi
 rm $OUTFILE
 rm $FILTERED

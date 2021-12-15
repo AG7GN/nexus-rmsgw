@@ -19,7 +19,7 @@
 #%
 #================================================================
 #- IMPLEMENTATION
-#-    version         ${SCRIPT_NAME} 1.0.9
+#-    version         ${SCRIPT_NAME} 1.0.10
 #-    author          Steve Magnuson, AG7GN
 #-    license         CC-BY-SA Creative Commons License
 #-    script_id       0
@@ -29,6 +29,7 @@
 #     20200428 : Steve Magnuson : Script creation.
 #     20200507 : Steve Magnuson : Bug fixes
 #     20210721 : Steve Magnuson : Add -u option
+#     20211212 : Steve Magnuson : Accommodate new version of pat
 # 
 #================================================================
 #  DEBUG OPTION
@@ -236,12 +237,28 @@ function SetFormFields () {
 function UpdateReporting () {
 	PAT_DIR="$HOME/.wl2kgw"
 	WHO="$USER"
+	PAT_VERSION="$(pat version | cut -d' ' -f2)"
+	if [[ -z $PAT_VERSION ]]
+	then
+		echo "pat is not installed. Reporting is disabled." >$PIPEDATA
+		return
+	fi
+	if [[ $PAT_VERSION =~ v0.1[01]. ]]
+	then
+		PAT_DIR="$HOME/.wl2kgw"
+		PAT_MBOX_DIR="$PAT_DIR/mailbox/${F[_CALL_]}"
+	else
+		PAT_DIR="$HOME/.config/pat"		
+		PAT_MBOX_DIR="$HOME/.local/share/pat/mailbox/${F[_CALL_]}"
+	fi
 	SCRIPT="$(command -v rmsgw-activity.sh)"
-	PAT="$(command -v pat) --config $PAT_DIR/config.json --mbox $PAT_DIR/mailbox --send-only --event-log /dev/null connect telnet"
-	CLEAN="find $PAT_DIR/mailbox/${F[_CALL_]}/sent -type f -mtime +30 -exec rm -f {} \;"
+	#PAT="$(command -v pat) --config $PAT_DIR/config.json --mbox $PAT_DIR/mailbox --send-only --event-log /dev/null connect telnet"
+	PAT="$(command -v pat) --config $PAT_DIR/config.json --send-only --event-log /dev/null connect telnet"
+	#CLEAN="find $PAT_DIR/mailbox/${F[_CALL_]}/sent -type f -mtime +30 -exec rm -f {} \;"
+	CLEAN="find $PAT_MBOX_DIR/sent -type f -mtime +30 -exec rm -f {} \;"
 # remove old style pat cron job, which used the default config.json pat configuration
-	OLDPAT="$(command -v pat) --send-only --event-log /dev/null connect telnet"
-	cat <(fgrep -i -v "$OLDPAT" <(sudo crontab -u $WHO -l)) | sudo crontab -u $WHO -
+	#OLDPAT="$(command -v pat) --send-only --event-log /dev/null connect telnet"
+	#cat <(fgrep -i -v -E "$OLDPAT" <(sudo crontab -u $WHO -l)) | sudo crontab -u $WHO -
 	if [[ ${F[_REPORTS_]} == "TRUE" ]]
 	then # Daily email reports requested
 		if [[ ${F[_EMAIL_]} =~ ^[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:].]{2,4}$ ]]
@@ -275,19 +292,19 @@ function UpdateReporting () {
 					EMAILs="${F[_EMAIL_]},$_EMAILs"
 				fi
 				WHEN="1 0 * * *"
-				WHAT="$SCRIPT $EMAILs $PAT_DIR >/dev/null 2>&1"
+				WHAT="$SCRIPT $EMAILs >/dev/null 2>&1"
 				JOB="$WHEN PATH=\$PATH:/usr/local/bin; $WHAT"
-				cat <(fgrep -i -v "$SCRIPT" <(sudo crontab -u $WHO -l)) <(echo "$JOB") | sudo crontab -u $WHO -
+				cat <(grep -i -v "$SCRIPT" <(sudo crontab -u $WHO -l)) <(echo "$JOB") | sudo crontab -u $WHO -
 				WHEN="3 * * * *"
 				WHAT="$PAT >/dev/null 2>&1"
 				JOB="$WHEN PATH=\$PATH:/usr/local/bin; $WHAT"
-				cat <(fgrep -i -v "$PAT" <(sudo crontab -u $WHO -l)) <(echo "$JOB") | sudo crontab -u $WHO -
+				cat <(grep -i -v "send-only" <(sudo crontab -u $WHO -l)) <(echo "$JOB") | sudo crontab -u $WHO -
 				# Purge sent messages older than 30 days
 				echo "Installing cron to purge sent messages older than 30 days" >$PIPEDATA
 				WHEN="7 0 * * *"
 				WHAT="$CLEAN"
 				JOB="$WHEN $WHAT"
-				cat <(fgrep -i -v "$WHAT" <(sudo crontab -u $WHO -l)) <(echo "$JOB") | sudo crontab -u $WHO -
+				cat <(grep -i -v "find.*${F[_CALL_]}" <(sudo crontab -u $WHO -l)) <(echo "$JOB") | sudo crontab -u $WHO -
 				echo "Done." >$PIPEDATA
 				echo "Reporting setup complete." >$PIPEDATA
 		else
@@ -300,9 +317,9 @@ function UpdateReporting () {
 		fi
 	else # Reporting disabled. Remove report cron job if present
 		echo "Remove Reporting" >$PIPEDATA
-		cat <(fgrep -i -v "$SCRIPT" <(sudo crontab -u $WHO -l)) | sudo crontab -u $WHO -
-		cat <(fgrep -i -v "$PAT" <(sudo crontab -u $WHO -l)) | sudo crontab -u $WHO -
-		cat <(fgrep -i -v "$CLEAN" <(sudo crontab -u $WHO -l)) | sudo crontab -u $WHO -
+		cat <(grep -i -v "$SCRIPT" <(sudo crontab -u $WHO -l)) | sudo crontab -u $WHO -
+		cat <(grep -i -v "send-only" <(sudo crontab -u $WHO -l)) | sudo crontab -u $WHO -
+		cat <(grep -i -v "find.*${F[_CALL_]}" <(sudo crontab -u $WHO -l)) | sudo crontab -u $WHO -
 	fi
 }
 
