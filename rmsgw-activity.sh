@@ -61,8 +61,8 @@ if [[ $PAT_VERSION =~ v0.1[01]. ]]
 then
 	cat $OUTFILE | sort | uniq | $(command -v patmail.sh) -d $PAT_DIR $MAILTO "$HOSTNAME RMS Gateway activity for 24 hours preceding `date`" telnet
 else
-	cat $OUTFILE | sort | uniq | $(command -v pat) --config $PAT_DIR/config.json compose --subject "$HOSTNAME RMSGW activity 24 hours before `date`" $(echo $MAILTO | xargs -d,)
-	$(command -v pat) --config $PAT_DIR/config.json --send-only connect telnet
+	cat $OUTFILE | sort | uniq | $(command -v pat) --config $PAT_DIR/config.json compose --subject "$HOSTNAME RMSGW activity 24 hours before `date`" $(echo $MAILTO | xargs -d,) &>/dev/null
+	$(command -v pat) --config $PAT_DIR/config.json --send-only connect telnet &>/dev/null
 fi
 rm $OUTFILE
 rm $FILTERED
